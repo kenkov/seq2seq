@@ -6,7 +6,7 @@ seq2seq
 =====
 
 LSTM を用いた sequence to sequence の encoder/decoder の実装です。
-たとえば対話システムの作成に使うことができます。
+対話システムの実装に用いることができます。
 
 インストール
 =================
@@ -23,30 +23,39 @@ LSTM を用いた sequence to sequence の encoder/decoder の実装です。
 
         $ pip install cython numpy scipy gensim chainer gensim
 
-Python 3.5 よりバージョンが小さい場合には
+Python のバージョンが 3.5 より小さい場合には
 
 - mypy-lang  http://mypy-lang.org/
 
-もインストールしてください。
+をインストールしてください。
 
-オプションですが、chainer で GPU を使うために
-cuda をインストールしておいた方がよいです。
+GPU を使う場合は cuda をインストールしてください。
 
 ::
 
     $ pacman -S cuda  # for ArchLinux
 
-GPU を使わないと学習に時間がかかりすぎるため、使うのは困難でしょう。
+GPU を使わないと学習に多くの時間がかかります。
+実用するならば GPU の仕様を検討しましょう。
 
 使い方
 ======
 
-はじめに encoder, decoder をこの順に学習します。
+はじめに encoder, decoder の順にモデルを学習します。
 
-以下はテスト用の設定ファイル `test.ini` を用います。
-テスト用のコーパスは `corpus_test` 以下にはいっています。
+学習には
+- 設定ファイル
+- 対話コーパス
+が必要です。
 
-encoder を訓練するには以下のコマンドを実行します。
+この例では、テスト用に作成した
+
+- 設定ファイル `test.ini` を用います。
+- コーパス `corpus_test/sent.txt` `corpus_test/conv.txt`
+
+を用います。
+
+`train_rnn_encoder.py` で encoder モデルを学習します。
 
 ::
 
@@ -65,13 +74,13 @@ encoder を訓練するには以下のコマンドを実行します。
     saved model as encoder_model_test/model_0.npz
     epoch: 0, loss 2.5381157994270325
 
-1 エポックだけでは訓練が足りない場合は、 `for` ループで回しましょう。
+1 エポックだけでは学習が足りない場合は、 `for` ループで回しましょう。
 
 ::
 
     $ for _ in $(seq 10); do python train_rnn_encoder.py test.ini; done
 
-decoder を訓練するには以下のコマンドを使います。
+`train_rnn_decoder.py` で decoder モデルを学習します。
 
 ::
 
@@ -89,7 +98,7 @@ decoder を訓練するには以下のコマンドを使います。
     saved model as decoder_model_test/model_0.npz
     epoch: 0, loss 1.3466346263885498
 
-1 エポックだけでは訓練が足りない場合は、 encoder の場合と同様に `for` ループで回しましょう。
+1 エポックだけでは学習が足りない場合は、 encoder の場合と同様に `for` ループで回しましょう。
 
 ::
 
