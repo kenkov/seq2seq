@@ -19,7 +19,9 @@ LSTM を用いた sequence to sequence の encoder/decoder の実装です。
     - chainer  https://github.com/pfnet/chainer
     - gensim  https://radimrehurek.com/gensim/
 
-    $ pip install cython numpy scipy gensim chainer gensim
+    ::
+
+        $ pip install cython numpy scipy gensim chainer gensim
 
 Python 3.5 よりバージョンが小さい場合には
 
@@ -29,6 +31,8 @@ Python 3.5 よりバージョンが小さい場合には
 
 オプションですが、chainer で GPU を使うために
 cuda をインストールしておいた方がよいです。
+
+::
 
     $ pacman -S cuda  # for ArchLinux
 
