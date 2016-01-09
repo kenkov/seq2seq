@@ -12,37 +12,26 @@ LSTM を用いた sequence to sequence の encoder/decoder の実装です。
 =================
 
 - Python 3.x.x をインストールしてください。
-- Install python modules via pip
-    - cython  http://cython.org/
-    - numpy  https://github.com/numpy/numpy
-    - scipy  https://github.com/scipy/scipy
-    - chainer  https://github.com/pfnet/chainer
-    - gensim  https://radimrehurek.com/gensim/
+- `chainer <https://github.com/pfnet/chainer>`_ をインストールしてください。
 
     ::
 
-        $ pip install cython numpy scipy gensim chainer gensim
+        $ pip install chainer==1.3.2
 
-Python のバージョンが 3.5 より小さい場合には
+- Python のバージョンが 3.5 より小さい場合には `mypy-lang <http://mypy-lang.org/>`_
+  をインストールしてください。
 
-- mypy-lang  http://mypy-lang.org/
+- GPU を使う場合は cuda をインストールしてください。
 
-をインストールしてください。
+    ::
 
-GPU を使う場合は cuda をインストールしてください。
+        $ pacman -S cuda  # for ArchLinux
 
-::
-
-    $ pacman -S cuda  # for ArchLinux
-
-GPU を使わないと学習に多くの時間がかかります。
-実用するならば GPU の仕様を検討しましょう。
 
 使い方
 ======
 
-はじめに encoder, decoder の順にモデルを学習します。
-
+はじめに encoder, decoder のモデルを学習します。
 学習には
 
 - 設定ファイル
@@ -50,14 +39,15 @@ GPU を使わないと学習に多くの時間がかかります。
 
 が必要です。
 
-この例では、テスト用に作成した
+ここでは、テスト用に作成した
 
-- 設定ファイル `test.ini` を用います。
-- コーパス `corpus_test/sent.txt` `corpus_test/conv.txt`
+- 設定ファイル `test.ini`
+- 対話コーパス `corpus_test/sent.txt` `corpus_test/conv.txt`
 
 を用います。
 
-`train_rnn_encoder.py` で encoder モデルを学習します。
+はじめに、 `train_rnn_encoder.py` で encoder モデルを学習します。
+引数には設定ファイルを渡します。
 
 ::
 
@@ -76,13 +66,14 @@ GPU を使わないと学習に多くの時間がかかります。
     saved model as encoder_model_test/model_0.npz
     epoch: 0, loss 2.5381157994270325
 
-1 エポックだけでは学習が足りない場合は、 `for` ループで回しましょう。
+デフォルトでは 1 epoch 学習します。
+学習が足りない場合は、 `for` ループで回しましょう。
 
 ::
 
     $ for _ in $(seq 10); do python train_rnn_encoder.py test.ini; done
 
-`train_rnn_decoder.py` で decoder モデルを学習します。
+次に、 `train_rnn_decoder.py` で decoder モデルを学習します。
 
 ::
 
@@ -100,13 +91,15 @@ GPU を使わないと学習に多くの時間がかかります。
     saved model as decoder_model_test/model_0.npz
     epoch: 0, loss 1.3466346263885498
 
-1 エポックだけでは学習が足りない場合は、 encoder の場合と同様に `for` ループで回しましょう。
+こちらもデフォルトでは 1 epoch 学習します。
+学習が足りない場合は、 encoder の場合と同様に `for` ループで回しましょう。
 
 ::
 
     $ for _ in $(seq 10); do python train_rnn_decoder.py test.ini; done
 
-テストするには以下のコマンドを実行します。
+encoder, decoder モデルが学習し終えたら、対話できるようになります。
+`test_rnn_decoder.py` で対話テストをします。
 
 ::
 
@@ -122,7 +115,7 @@ GPU を使わないと学習に多くの時間がかかります。
 
 生成される文章がおかしい場合は、モデルの学習をくりかえしましょう。
 
-モデルの学習が遅い場合は GPU を用いましょう（通常は使わないと遅すぎるでしょう）
+モデルの学習が遅い場合は GPU を用いましょう。
 
 ::
 
