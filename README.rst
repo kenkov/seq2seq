@@ -2,125 +2,114 @@
 seq2seq
 ==============================
 
-概要
-=====
+What is this module ?
+=======================
 
-LSTM を用いた sequence to sequence の encoder/decoder の実装です。
-対話システムの実装に用いることができます。
+This module implements seqence to sequence (seq2seq) neural network models
+with the aim to creating dialogue systems.
 
-インストール
+It uses `chainer <http://chainer.org/>`_ to implement neural network models.
+
+
+Install
 =================
 
-- Python 3.x.x をインストールしてください。
-- `chainer <https://github.com/pfnet/chainer>`_ をインストールしてください。
+Install
+- chainer (1.6.1)
+- gensim (0.12.2)
 
-    ::
-
-        $ pip install chainer==1.3.2
-
-- Python のバージョンが 3.5 より小さい場合には `mypy-lang <http://mypy-lang.org/>`_
-  をインストールしてください。
-
-- GPU を使う場合は cuda をインストールしてください。
+- Install cuda when using GPU
 
     ::
 
         $ pacman -S cuda  # for ArchLinux
 
 
-使い方
+Usage
 ======
 
-はじめに encoder, decoder のモデルを学習します。
-学習には
+First, train encoder and decoder models.
 
-- 設定ファイル
-- 対話コーパス
+There are a configuration and corpus files in `corpus_test` directory
 
-が必要です。
+- config file: `test.ini`
+- dialogue corpus: `corpus_test/sent.txt` `corpus_test/conv.txt` .
 
-ここでは、テスト用に作成した
-
-- 設定ファイル `test.ini`
-- 対話コーパス `corpus_test/sent.txt` `corpus_test/conv.txt`
-
-を用います。
-
-はじめに、 `train_rnn_encoder.py` で encoder モデルを学習します。
-引数には設定ファイルを渡します。
+Use `train_encoder.py` to train an encoder model.
 
 ::
 
-    $ python train_rnn_encoder.py test.ini
-    creating dictionary
-    add start and end symbols in dictionary
-    adding words from corpus_test/sent.txt to dictionary
-    RNN structure: word -> 31 -> 700 -> 700 nodes, 6 LSTM layers -> 31, GPU flag: False
-    loaded sentences from corpus_test/sent.txt
-    data size: 8
+    python train_encoder.py -t relu test.ini 2>/dev/null
+    load model encoder_model_test/model.npz
+    set optimizer clip threshold: 5.0
+    loaded sentences from corpus_test/sent.word.txt
+    data size: 12
+    epoch 0
+    epoch 0 batch 0: loss 3.6170058250427246, grad L2 norm: 3.9864994687553197, forward 0:00:00.014572, optimizer 0:00:00.009774
+    epoch 0 batch 1: loss 3.6550519466400146, grad L2 norm: 2.3834681732152294, forward 0:00:00.010261, optimizer 0:00:00.003314
+    epoch 0 batch 2: loss 3.7410669326782227, grad L2 norm: 5.000003863101264, forward 0:00:00.019999, optimizer 0:00:00.009585
+    epoch 0 batch 3: loss 5.606266975402832, grad L2 norm: 4.9999995628779095, forward 0:00:00.031611, optimizer 0:00:00.015180
+    epoch 0 batch 4: loss 3.6682329177856445, grad L2 norm: 1.7967707531089245, forward 0:00:00.003995, optimizer 0:00:00.002180
+    epoch 0 batch 5: loss 18.82986831665039, grad L2 norm: 4.99999907185384, forward 0:00:00.025314, optimizer 0:00:00.012267
+    finish epoch 0, loss 0.03911749291419983
+    epoch 1
+    epoch 1 batch 0: loss 3.553004503250122, grad L2 norm: 3.7215319124368187, forward 0:00:00.017583, optimizer 0:00:00.009865
+    epoch 1 batch 1: loss 3.5388011932373047, grad L2 norm: 3.088856597811233, forward 0:00:00.013634, optimizer 0:00:00.004701
+    epoch 1 batch 2: loss 6.547500133514404, grad L2 norm: 4.999992318087526, forward 0:00:00.026898, optimizer 0:00:00.012684
+    epoch 1 batch 3: loss 3.7236814498901367, grad L2 norm: 5.00000295885751, forward 0:00:00.022071, optimizer 0:00:00.010529
+    epoch 1 batch 4: loss 4.04321813583374, grad L2 norm: 4.999997366731293, forward 0:00:00.014172, optimizer 0:00:00.006885
+    epoch 1 batch 5: loss 4.456284046173096, grad L2 norm: 5.000000392657223, forward 0:00:00.017445, optimizer 0:00:00.008506
+    finish epoch 1, loss 0.025862489461898803
+    epoch 2
+    ...
+
+
+Then, Use `train_decoder.py` to train a decoder model.
+
+::
+
+    $ python train_decoder.py -t relu test.ini
+    load dictionary: 47 items
+    load encoder model encoder_model_test/model.npz
+    load decoder model decoder_model_test/model.npz
+    set optimizer clip threshold: 5.0
+    loaded sentences from corpus_test/conv.word.txt
+    data size: 6
     running epoch 0
-    epoch 0 batch 0 loss 2.7052767276763916 forward 0:00:00.466268 backward 0:00:02.921779
-    epoch 0 batch 1 loss 2.160247802734375 forward 0:00:00.289071 backward 0:00:01.900879
-    epoch 0 batch 2 loss 2.4732136726379395 forward 0:00:00.479989 backward 0:00:03.109619
-    epoch 0 batch 3 loss 2.813724994659424 forward 0:00:00.482876 backward 0:00:03.133984
-    saved model as encoder_model_test/model_0.npz
-    epoch: 0, loss 2.5381157994270325
+    epoch 0 batch 0: loss 14.778450012207031, grad L2 norm: 5.000001444721211, forward 0:00:00.032181, optimizer 0:00:00.015524
+    epoch 0 batch 1: loss 13.42282772064209, grad L2 norm: 5.000006844430436, forward 0:00:00.057257, optimizer 0:00:00.025782
+    epoch 0 batch 2: loss 4.566666126251221, grad L2 norm: 4.999997299629466, forward 0:00:00.021281, optimizer 0:00:00.009233
+    finish epoch 0, loss 0.03276794385910034
+    running epoch 1
+    epoch 1 batch 0: loss 3.9690470695495605, grad L2 norm: 4.728466637951272, forward 0:00:00.015587, optimizer 0:00:00.007583
+    epoch 1 batch 1: loss 5.986050605773926, grad L2 norm: 5.000004347569049, forward 0:00:00.036949, optimizer 0:00:00.017259
+    epoch 1 batch 2: loss 16.204647064208984, grad L2 norm: 5.0000030326973395, forward 0:00:00.052537, optimizer 0:00:00.024978
+    finish epoch 1, loss 0.026159744739532472
+    running epoch 2
+    epoch 2 batch 0: loss 9.967018127441406, grad L2 norm: 5.000000181427455, forward 0:00:00.040972, optimizer 0:00:00.019673
+    epoch 2 batch 1: loss 6.41628885269165, grad L2 norm: 5.0000019923954495, forward 0:00:00.026851, optimizer 0:00:00.012867
+    epoch 2 batch 2: loss 4.393733978271484, grad L2 norm: 5.000003581958471, forward 0:00:00.035179, optimizer 0:00:00.016866
+    finish epoch 2, loss 0.02077704095840454
 
-デフォルトでは 1 epoch 学習します。
-学習が足りない場合は、 `for` ループで回しましょう。
 
-::
-
-    $ for _ in $(seq 10); do python train_rnn_encoder.py test.ini; done
-
-次に、 `train_rnn_decoder.py` で decoder モデルを学習します。
-
-::
-
-    $ python train_rnn_decoder.py test.ini
-    load dictionary: 31 items
-    RNN structure: word -> 31 -> 700 -> 700 nodes, 6 LSTM layers -> 31, GPU flag: False
-    RNN structure: word -> 31 -> 700 -> 700 nodes, 6 LSTM layers -> 31, GPU flag: False
-    loaded RNN model: encoder_model_test/model_0.npz
-    loaded RNN model: decoder_model_test/model_0.npz
-    loaded sentences from corpus_test/conv.txt
-    data size: 4
-    running epoch 0
-    decoder epoch 0 batch 0 loss 1.1433789730072021 forward 0:00:01.137217 backward 0:00:07.309638
-    decoder epoch 0 batch 1 loss 1.5498902797698975 forward 0:00:00.843419 backward 0:00:06.869120
-    saved model as decoder_model_test/model_0.npz
-    epoch: 0, loss 1.3466346263885498
-
-こちらもデフォルトでは 1 epoch 学習します。
-学習が足りない場合は、 encoder の場合と同様に `for` ループで回しましょう。
+You can talk with the model after training encoder and decoder models.
 
 ::
 
-    $ for _ in $(seq 10); do python train_rnn_decoder.py test.ini; done
+    python test_decoder.py -t relu test.ini
+    load dictionary: 47 items
+    load encoder model encoder_model_test/model.npz
+    load decoder model decoder_model_test/model.npz
+    おはよう
+    ['おはよう', '</S>']
+    おはようござますす！！！
 
-encoder, decoder モデルが学習し終えたら、対話できるようになります。
-`test_rnn_decoder.py` で対話テストをします。
 
-::
-
-    $ python test_rnn_decoder.py test.ini
-    load dictionary: 31 items
-    RNN structure: word -> 31 -> 700 -> 700 nodes, 6 LSTM layers -> 31, GPU flag: False
-    loaded RNN model: encoder_model_test/model_0.npz
-    RNN structure: word -> 31 -> 700 -> 700 nodes, 6 LSTM layers -> 31, GPU flag: False
-    loaded RNN model: decoder_model_test/model_0.npz
-    おはよう！
-    ['！', 'う', 'よ', 'は', 'お', '</S>']
-    おんんばは
-
-生成される文章がおかしい場合は、モデルの学習をくりかえしましょう。
-
-モデルの学習が遅い場合は GPU を用いましょう。
+Use `-g` option to use GPU.
 
 ::
 
-    # -g オプションで GPU を ON にする
+    # enable GPU to use -g オプション
     $ python train_rnn_encoder.py test.ini -g 1
     $ python train_rnn_decoder.py test.ini -g 1
     $ python test_rnn_decoder.py test.ini -g 1
-
