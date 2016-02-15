@@ -6,7 +6,7 @@ What is this module ?
 =======================
 
 This module implements seqence to sequence (seq2seq) neural network models
-with the aim to creating dialogue systems.
+with the aim to create dialogue systems.
 
 It uses `chainer <http://chainer.org/>`_ to implement neural network models.
 
@@ -15,9 +15,9 @@ Install
 =================
 
 Install
+
 - chainer (1.6.1)
 - gensim (0.12.2)
-
 - Install cuda when using GPU
 
     ::
