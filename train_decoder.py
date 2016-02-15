@@ -45,7 +45,7 @@ if __name__ == "__main__":
     if os.path.exists(config["dict_file"]):
         dictionary = load_dictionary(config["dict_file"])
     else:
-        from seq2seq import create_dictionary
+        from util import create_dictionary
         dictionary = create_dictionary(
             [config["sent_file"],
              ],
