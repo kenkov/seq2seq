@@ -73,7 +73,7 @@ if __name__ == "__main__":
         )
     elif model_type == "lstm":
         import lstm
-        decoder_model = lstm.Classifier(
+        encoder_model = lstm.Classifier(
             lstm.LSTM(
                 embed_dim=dim,
                 n_units=int(config["n_units"]),
