@@ -32,25 +32,47 @@ if __name__ == "__main__":
     config_file = args.config_file
     parser_config = configparser.ConfigParser()
     parser_config.read(config_file)
-    config = parser_config["CONFIG"]
-    # config["SEPARATOR"] = bytes(
-    #     config["DEFAULT"]["SEPARATOR"], "utf-8"
-    # ).decode("unicode_escape")
 
-    # files
-    model_dir = config["model_dir"]
+    # params
+    config = parser_config["CONFIG"]
+    model_dir = config.get("model_dir")
+    dict_file = config.get("dict_file")
+    sent_file = config.get("sent_file")
+    conv_file = config.get("conv_file")
+
+    word2vec_init = config.getboolean("word2vec_init")
+    word2vec_model_file = config.get("word2vec_model_file")
+
+    min_freq = config.getint("min_freq")
+    n_units = config.getint("n_units")
+    epoch_size = config.getint("epoch_size")
+    batch_size = config.getint("batch_size")
+    dropout = config.getboolean("dropout")
+
+    print("### options ###")
+    print("model_dir: {}".format(model_dir))
+    print("sent_file: {}".format(sent_file))
+    print("conv_file: {}".format(conv_file))
+    print("dict_file: {}".format(dict_file))
+    print("word2vec_init: {}".format(word2vec_init))
+    print("word2vec_model_file: {}".format(word2vec_model_file))
+    print("min_freq: {}".format(min_freq))
+    print("n_units: {}".format(n_units))
+    print("epoch_size: {}".format(epoch_size))
+    print("batch_size: {}".format(batch_size))
+    print("dropout: {}".format(dropout))
+    print("##############")
 
     # 辞書
-    if os.path.exists(config["dict_file"]):
-        dictionary = load_dictionary(config["dict_file"])
+    if os.path.exists(dict_file):
+        dictionary = load_dictionary(dict_file)
     else:
         from util import create_dictionary
         dictionary = create_dictionary(
-            [config["sent_file"],
-             ],
-            min_freq=int(config["min_freq"])
+            [sent_file],
+            min_freq=min_freq
         )
-        dictionary.save(config["dict_file"])
+        dictionary.save(dict_file)
 
     # Prepare encoder RNN model
     dim = len(dictionary.keys())
@@ -59,7 +81,7 @@ if __name__ == "__main__":
         model = relu_rnn.Classifier(
             relu_rnn.ReLURNN(
                 embed_dim=dim,
-                n_units=int(config["n_units"]),
+                n_units=n_units,
                 gpu=args.gpu
             )
         )
@@ -68,7 +90,7 @@ if __name__ == "__main__":
         model = lstm.Classifier(
             lstm.LSTM(
                 embed_dim=dim,
-                n_units=int(config["n_units"]),
+                n_units=n_units,
                 gpu=args.gpu
             )
         )
@@ -80,29 +102,35 @@ if __name__ == "__main__":
         model_dir,
         "model.npz"
     )
-
     if os.path.exists(init_model_name):
         serializers.load_npz(init_model_name, model)
         print("load model {}".format(init_model_name))
-    else:
+
+    elif word2vec_init:
+        # initialize embedding layer by word2vec
         import numpy as np
-        print("learning word2vec model")
-        word2vec_model = word2vec.Word2Vec(
-            load_sentence(config["sent_file"]),
-            size=int(config["n_units"]),
-            window=5,
-            min_count=1,
-            workers=4
-        )
-        word2vec_model.save("word2vec.model")
-        print("initializing word embedding by word2vec")
+
+        if os.path.exists(word2vec_model_file):
+            print("load word2vec model")
+            word2vec_model = word2vec.Word2Vec.load(word2vec_model_file)
+        else:
+            print("start learning word2vec model")
+            word2vec_model = word2vec.Word2Vec(
+                load_sentence(sent_file),
+                size=n_units,
+                window=5,
+                min_count=1,
+                workers=4
+            )
+            print("save word2vec model")
+            word2vec_model.save(word2vec_model_file)
+
+        # initialize word embedding layer with word2vec
         initial_W = np.array([
             word2vec_model[dictionary[wid]]
             if dictionary[wid] in word2vec_model
             else np.array(
-                [np.random.random() for _ in range(
-                    int(config["n_units"]))
-                 ],
+                [np.random.random() for _ in range(n_units)],
                 dtype=np.float32
             )
             for wid in range(dim)],
@@ -114,15 +142,16 @@ if __name__ == "__main__":
                 not_found_words.append(dictionary[wid])
         print("{} are not found in word2vec model".format(not_found_words))
         model.predictor.set_word_embedding(initial_W)
-        print(initial_W)
+        # print(initial_W)
+        print("finish initializing word embedding with word2vec")
 
     train_encoder_decoder(
         model,
         dictionary,
-        config["conv_file"],
+        conv_file,
         model_dir,
-        epoch_size=int(config["epoch_size"]),
-        batch_size=int(config["batch_size"]),
-        dropout=bool(config["dropout"]),
+        epoch_size,
+        batch_size,
+        dropout,
         gpu=gpu_flag
     )
