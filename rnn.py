@@ -1,12 +1,9 @@
 #! /usr/bin/env python
 # coding:utf-8
 
-import numpy as np
-from chainer import Variable, optimizers, serializers
-from chainer import Chain
+from chainer import Variable, Chain
 import chainer.functions as F
 import chainer.links as L
-from datetime import datetime
 from typing import List, Tuple, Dict
 from rtype import State
 
@@ -121,15 +118,6 @@ class Classifier(Chain):
         if len(words) <= 1:
             raise Exception("word length error: >= 2")
 
-        # state は 0 で初期化する
-        # state = state if state else {
-        #     key: Variable(
-        #         self.xp.zeros(
-        #             (1, self.predictor.n_units),
-        #             dtype=self.xp.float32)
-        #     ) for key in ["h1", "c1"]
-        # }
-
         # word convert
         _words = [
             Variable(self.xp.array([word], dtype=self.xp.int32))
@@ -145,7 +133,6 @@ class Classifier(Chain):
 
         norm_array = []
 
-        log_file = open("log", "a")
         for y, t in zip(ys, _words[1:]):
             new_loss = F.softmax_cross_entropy(y, t)
             y_norm = self.xp.sqrt(y.data[0].dot(y.data[0]))
@@ -153,13 +140,11 @@ class Classifier(Chain):
             if self.xp.isnan(y_norm):
                 print(y_norm)
             loss += new_loss
-        print(norm_array, file=log_file)
-        print(
-            "y norm mean: {}".format(
-                sum(norm_array) / len(norm_array)
-            ),
-            file=log_file
-        )
+        # print(
+        #     "y norm mean: {}".format(
+        #         sum(norm_array) / len(norm_array)
+        #     ),
+        # )
 
         len_words = Variable(self.xp.array(
             len(words) - 1,
@@ -179,103 +164,3 @@ class Classifier(Chain):
             dropout=dropout,
             train=train
         )
-
-
-if __name__ == '__main__':
-    import argparse
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '--gpu', '-g', default=-1,
-        type=int,
-        help='GPU ID (negative value indicates CPU)'
-    )
-    args = parser.parse_args()
-
-    model = Classifier(
-        RNN(gpu=args.gpu)
-    )
-    if args.gpu >= 0:
-        model.to_gpu()
-        print(model.xp)
-
-    xp = model.xp
-
-    def farray(x):
-        return xp.array(x, dtype=xp.float32)
-
-    def iarray(x):
-        return xp.array(x, dtype=xp.int32)
-
-    # setup SGD optimizer
-    opt = optimizers.SGD()
-    opt.setup(model)
-
-    x_train_data = [
-        iarray([0, 1, 2, 3]),
-        iarray([0, 1, 2, 3, 4, 5]),
-        iarray([1, 0, 3, 4, 2]),
-        iarray([1, 1, 3, 2, 4, 8]),
-    ]
-
-    data_size = len(x_train_data)
-    batch_size = 2
-    epoch_size = 100
-
-    print("data size: {}".format(data_size))
-    for epoch in range(epoch_size):
-        print("epoch {}".format(epoch))
-
-        indexes = np.random.permutation(data_size)
-        epoch_loss = 0  # int
-
-        for bat_i in range(0, data_size, batch_size):
-            forward_start_time = datetime.now()
-            batch_loss = Variable(xp.zeros((), dtype=xp.float32))
-
-            for index in indexes[bat_i:bat_i + batch_size]:
-                input_words = x_train_data[index]
-
-                # # id のリストに変換する
-                # input_words_with_s = tokens2ids(
-                #     input_words,
-                #     dictionary,
-                #     verbose=False
-                # )
-
-                # フォワード
-                new_loss, _, _ = model(input_words)
-                batch_loss += new_loss
-            # 平均化
-            batch_size_array = xp.array(batch_size, dtype=xp.float32)
-            # if gpu:
-            #     batch_size_array = cuda.to_gpu(batch_size_array)
-            batch_loss = batch_loss / Variable(batch_size_array)
-            epoch_loss += batch_loss.data
-
-            # 時間計測
-            forward_end_time = datetime.now()
-
-            # 最適化
-            opt_start_time = datetime.now()
-            model.zerograds()
-            batch_loss.backward()
-            opt.update()
-            opt_end_time = datetime.now()
-
-            forward_delta = forward_end_time - forward_start_time
-            opt_delta = opt_end_time - opt_start_time
-            print(
-                "epoch {} batch {}: loss {}, forward {}, optimizer {},".format(
-                    epoch,
-                    int(bat_i / batch_size),
-                    batch_loss.data,
-                    forward_delta,
-                    opt_delta,
-                )
-            )
-        print("finish epoch {}, loss {}".format(
-            epoch,
-            epoch_loss / epoch_size
-        ))
-        serializers.save_npz("rnn_model.npz", model)
