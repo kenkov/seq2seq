@@ -17,12 +17,14 @@ Install
 Install
 
 - chainer (1.6.1)
-- gensim (0.12.2)
+- gensim (0.12.4)
 - Install cuda when using GPU
 
-    ::
+::
 
-        $ pacman -S cuda  # for ArchLinux
+    $ pip3 install chainer==1.6.1
+    $ pip3 install gensim==0.12.4
+    $ pacman -S cuda  # for ArchLinux
 
 
 Usage
