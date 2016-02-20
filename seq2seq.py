@@ -2,6 +2,7 @@
 # coding:utf-8
 
 
+import math
 import numpy as np
 from datetime import datetime
 from gensim import corpora
@@ -341,7 +342,8 @@ def train_encoder_decoder(
         print(model.xp)
 
     # setup SGD optimizer
-    opt = optimizers.SGD()
+    # opt = optimizers.SGD()
+    opt = optimizers.Adam()
     opt.setup(model)
 
     # optimizer hooks
@@ -361,7 +363,6 @@ def train_encoder_decoder(
 
         for bat_i in range(0, data_size, batch_size):
             forward_start_time = datetime.now()
-            batch_loss = Variable(model.xp.zeros((), dtype=np.float32))
 
             for index in indexes[bat_i:bat_i + batch_size]:
                 pair_words = conversation[index]
@@ -388,6 +389,7 @@ def train_encoder_decoder(
                 assert reply_words[0] == config.END_SYMBOL
                 assert reply_words[-1] == config.END_SYMBOL
                 output_words_with_s = tokens2ids(reply_words, dictionary)
+                batch_loss = Variable(model.xp.zeros((), dtype=np.float32))
                 try:
                     new_loss = model(
                         output_words_with_s,
@@ -465,7 +467,7 @@ def train_encoder_decoder(
                 )
         print("finish epoch {}, loss {}".format(
             epoch,
-            epoch_loss / epoch_size
+            epoch_loss / math.ceil(data_size / batch_size)
         ))
         # save
         serializers.save_npz(
@@ -493,7 +495,6 @@ def decode(
         encoder_model,
         decoder_model,
         dictionary: corpora.Dictionary,
-        dropout: bool=False,
 ) -> List[str]:
 
     assert words[-1] is not config.END_SYMBOL
@@ -505,7 +506,7 @@ def decode(
             decoder_model.xp.array([word], dtype=decoder_model.xp.int32)
         ) for word in input_words_with_s],
         state=None,
-        dropout=dropout,
+        dropout=False,
         train=False
     )
 
@@ -518,7 +519,7 @@ def decode(
                 decoder_model.xp.array([word], dtype=decoder_model.xp.int32)
             ),
             state,
-            dropout=dropout,
+            dropout=False,
             train=False
         )
         word = y.data[0].argmax()
