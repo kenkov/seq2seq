@@ -64,3 +64,11 @@ There is Makefile for convenient.
     $ make train
     # test the model
     # mkae test
+
+Model description
+==================
+
+Word Embedding initializer: word2vec or random between [0, 1]
+Layers : embedding layer -> 2 hidden layers -> output layer -> Softmax
+Units/activation functions: LSTM or ReLU with dropout option
+Optimizer: ADAM with clipping
