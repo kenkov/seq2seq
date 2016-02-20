@@ -76,7 +76,7 @@ if __name__ == "__main__":
 
     for text in (_.strip() for _ in sys.stdin):
         ws = text.split()
-        print(ws)
+        print("> {}".format(" ".join(ws)))
         decoded_words = decode(
             ws,
             model,
@@ -85,4 +85,4 @@ if __name__ == "__main__":
         )
 
         answer_text = "".join(decoded_words[1:-1])
-        print(answer_text)
+        print("{}".format(answer_text))
