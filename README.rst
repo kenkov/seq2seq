@@ -8,7 +8,7 @@ What is this module ?
 This module implements seqence to sequence (seq2seq) neural network models
 with the aim to create dialogue systems.
 
-It uses `chainer <http://chainer.org/>`_ to implement neural network models.
+This module uses `chainer <http://chainer.org/>`_ to implement neural network models.
 
 
 Install
@@ -68,7 +68,7 @@ There is Makefile for convenient.
 Model description
 ==================
 
-Word Embedding initializer: word2vec or random between [0, 1]
-Layers : embedding layer -> 2 hidden layers -> output layer -> Softmax
-Units/activation functions: LSTM or ReLU with dropout option
-Optimizer: ADAM with clipping
+- Word Embedding initializer: word2vec or random between [0, 1]
+- Layers : embedding layer -> 2 hidden layers -> output layer -> Softmax
+- Units/activation functions: LSTM or ReLU with dropout option
+- Optimizer: ADAM with clipping
