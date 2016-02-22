@@ -27,7 +27,7 @@ def tokens2ids(
                 not_found_lst
             ))
         for word in tokens:
-            if dictionary.token2id[word] < 0:
+            if word in dictionary and dictionary.token2id[word] < 0:
                 raise("word id < 0: {}".format(word))
 
     # 未知語は UNK にする
