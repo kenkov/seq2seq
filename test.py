@@ -77,12 +77,14 @@ if __name__ == "__main__":
     for text in (_.strip() for _ in sys.stdin):
         ws = text.split()
         print("> {}".format(" ".join(ws)))
-        decoded_words = decode(
-            ws,
-            model,
-            model,
-            dictionary,
-        )
+        for order in range(1, 5):
+            decoded_words = decode(
+                ws,
+                model,
+                model,
+                dictionary,
+                order=order
+            )
 
-        answer_text = "".join(decoded_words[1:-1])
-        print("{}".format(answer_text))
+            answer_text = "".join(decoded_words[1:-1])
+            print("{}".format(answer_text))
