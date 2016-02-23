@@ -495,6 +495,7 @@ def decode(
         encoder_model,
         decoder_model,
         dictionary: corpora.Dictionary,
+        order: int=1,
 ) -> List[str]:
 
     assert words[-1] is not config.END_SYMBOL
@@ -522,7 +523,10 @@ def decode(
             dropout=False,
             train=False
         )
-        word = y.data[0].argmax()
+        if len(lst) == 1:
+            word = y.data[0].argsort()[-order]
+        else:
+            word = y.data[0].argmax()
 
         lst.append(dictionary[word])
         if dictionary[word] == config.END_SYMBOL or len(lst) >= 100:
